@@ -8,6 +8,8 @@ from VideoPanel import VideoPanel
 class DepthVideoPanel(VideoPanel):
 
     pipeline = None
+    distance = 1
+    colormap = cv.COLORMAP_BONE
 
     def __init__(self, parent, pipeline):
         self.pipeline = pipeline
@@ -16,10 +18,11 @@ class DepthVideoPanel(VideoPanel):
         pass
 
     def GetDataBuffer(self):
-        frames = self.pipeline.wait_for_frames()
+        frames = self.pipeline.wait_for_frames(1000)
         depth_frame = frames.get_depth_frame()
         depth_image = np.asanyarray(depth_frame.get_data())
-        depth_colormap = cv.applyColorMap(cv.convertScaleAbs(depth_image, alpha=0.03), cv.COLORMAP_JET)
+        dst = None
+        depth_colormap = cv.applyColorMap(cv.convertScaleAbs(depth_image, alpha=self.distance), colormap=self.colormap, dst=dst)
         buffer = cv.cvtColor(depth_colormap, cv.COLOR_BGR2RGB)
         return buffer
 
