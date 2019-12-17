@@ -89,18 +89,9 @@ import numpy as np
 #         finally:
 #             pipe.stop()
 #
-#
+
 # if __name__ == '__main__':
 #     app = wx.App()
 #     frame = PaintBotFrame(None)
 #     frame.Show()
 #     app.MainLoop()
-
-import VideoPanel
-
-if __name__ == '__main__':
-    app = wx.App()
-    frame = wx.Frame(None)
-    panel = VideoPanel(frame)
-    frame.Show()
-    app.MainLoop()
