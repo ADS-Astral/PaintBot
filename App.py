@@ -95,3 +95,153 @@ import numpy as np
 #     frame = PaintBotFrame(None)
 #     frame.Show()
 #     app.MainLoop()
+
+from DepthVideoPanel import DepthVideoPanel
+
+
+class PaintBotFrame(wx.Frame):
+
+    depthPanel = None
+    colormapHash = []
+
+    def __init__(self, parent):
+        wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition,
+                          size=wx.Size(500, 402), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
+
+        self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
+
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+
+        colormapSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Color Map"), wx.VERTICAL)
+
+        self.colormapHash = [
+            cv.COLORMAP_AUTUMN,
+            cv.COLORMAP_BONE,
+            cv.COLORMAP_CIVIDIS,
+            cv.COLORMAP_COOL,
+            cv.COLORMAP_HOT,
+            cv.COLORMAP_HSV,
+            cv.COLORMAP_INFERNO,
+            cv.COLORMAP_JET,
+            cv.COLORMAP_MAGMA,
+            cv.COLORMAP_OCEAN,
+            cv.COLORMAP_PARULA,
+            cv.COLORMAP_PINK,
+            cv.COLORMAP_PLASMA,
+            cv.COLORMAP_RAINBOW,
+            cv.COLORMAP_SPRING,
+            cv.COLORMAP_SUMMER,
+            cv.COLORMAP_TURBO,
+            cv.COLORMAP_TWILIGHT,
+            cv.COLORMAP_TWILIGHT_SHIFTED,
+            cv.COLORMAP_VIRIDIS,
+            cv.COLORMAP_WINTER,
+        ]
+
+        colormapChoiceValues = [
+                u"Autumn",
+                u"Bone",
+                u"Cividis",
+                u"Cool",
+                u"Hot",
+                u"Hsv",
+                u"Inferno",
+                u"Jet",
+                u"Magma",
+                u"Ocean",
+                u"Parula",
+                u"Pink",
+                u"Plasma",
+                u"Rainbow",
+                u"Spring",
+                u"Summer",
+                u"Turbo",
+                u"Twilight",
+                u"Twilight_shifted",
+                u"Viridis",
+                u"Winter",
+        ]
+        self.colormapChoice = wx.Choice(
+            colormapSizer.GetStaticBox(),
+            wx.ID_ANY,
+            wx.DefaultPosition,
+            wx.DefaultSize,
+            colormapChoiceValues,
+            0)
+        self.colormapChoice.SetSelection(0)
+        colormapSizer.Add(self.colormapChoice, 0, wx.ALL | wx.EXPAND, 5)
+
+        mainSizer.Add(colormapSizer, 0, wx.EXPAND, 5)
+
+        videoSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Video"), wx.VERTICAL)
+
+        self.depthPanel = DepthVideoPanel(self, pipeline)
+        videoSizer.Add(self.depthPanel, 1, wx.ALL | wx.EXPAND, 5)
+
+        mainSizer.Add(videoSizer, 1, wx.EXPAND, 5)
+
+        distanceSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Distance"), wx.HORIZONTAL)
+
+        self.distanceSlider = wx.Slider(distanceSizer.GetStaticBox(), wx.ID_ANY, 0, 0, 100, wx.DefaultPosition,
+                                        wx.DefaultSize, wx.SL_HORIZONTAL)
+        distanceSizer.Add(self.distanceSlider, 1, wx.ALL, 5)
+
+        self.distanceText = wx.TextCtrl(distanceSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+                                        wx.Size(50, -1), wx.TE_READONLY)
+        distanceSizer.Add(self.distanceText, 0, wx.ALL, 5)
+
+        mainSizer.Add(distanceSizer, 0, wx.EXPAND, 5)
+
+        confirmSizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.okayButton = wx.Button(self, wx.ID_ANY, u"OK", wx.DefaultPosition, wx.DefaultSize, 0)
+        confirmSizer.Add(self.okayButton, 0, wx.ALL, 5)
+
+        self.cancelButton = wx.Button(self, wx.ID_ANY, u"Cancel", wx.DefaultPosition, wx.DefaultSize, 0)
+        confirmSizer.Add(self.cancelButton, 0, wx.ALL, 5)
+
+        mainSizer.Add(confirmSizer, 0, wx.EXPAND, 5)
+
+        self.SetSizer(mainSizer)
+        self.Layout()
+
+        self.Centre(wx.BOTH)
+
+        # Connect Events
+        self.colormapChoice.Bind(wx.EVT_CHOICE, self.OnChooseColormap)
+        self.distanceSlider.Bind(wx.EVT_SCROLL, self.OnScrollDistance)
+        self.okayButton.Bind(wx.EVT_BUTTON, self.OnClickOkay)
+        self.cancelButton.Bind(wx.EVT_BUTTON, self.OnClickCancel)
+
+    def __del__(self):
+        pass
+
+    def OnChooseColormap(self, event):
+        self.depthPanel.colormap = self.colormapHash[self.colormapChoice.GetCurrentSelection()]
+
+    def OnScrollDistance(self, event):
+        distanceValue = self.distanceSlider.GetValue() / 300
+        self.depthPanel.distance = distanceValue
+        self.distanceText.ChangeValue(str(distanceValue))
+
+    def OnClickOkay(self, event):
+        event.Skip()
+
+    def OnClickCancel(self, event):
+        event.Skip()
+
+
+if __name__ == '__main__':
+
+    pipeline = rs.pipeline()
+    config = rs.config()
+    config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+    config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+    pipeline.start(config)
+
+    app = wx.App()
+    frame = PaintBotFrame(None)
+    frame.Show()
+    app.MainLoop()
+
+    pipeline.stop()
