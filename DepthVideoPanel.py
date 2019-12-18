@@ -8,7 +8,7 @@ from VideoPanel import VideoPanel
 class DepthVideoPanel(VideoPanel):
 
     pipeline = None
-    distance = 1
+    distance = 0.08
     colormap = cv.COLORMAP_BONE
 
     def __init__(self, parent, pipeline):

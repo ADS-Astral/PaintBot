@@ -104,9 +104,8 @@ class PaintBotFrame(wx.Frame):
     depthPanel = None
     colormapHash = []
 
-    def __init__(self, parent):
-        wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition,
-                          size=wx.Size(500, 402), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
+    def __init__(self, parent, size):
+        wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition, size=size, style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
 
         self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
 
@@ -176,6 +175,7 @@ class PaintBotFrame(wx.Frame):
         videoSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Video"), wx.VERTICAL)
 
         self.depthPanel = DepthVideoPanel(self, pipeline)
+        self.depthPanel.SetMinSize(size)
         videoSizer.Add(self.depthPanel, 1, wx.ALL | wx.EXPAND, 5)
 
         mainSizer.Add(videoSizer, 1, wx.EXPAND, 5)
@@ -207,40 +207,59 @@ class PaintBotFrame(wx.Frame):
 
         self.Centre(wx.BOTH)
 
-        # Connect Events
         self.colormapChoice.Bind(wx.EVT_CHOICE, self.OnChooseColormap)
         self.distanceSlider.Bind(wx.EVT_SCROLL, self.OnScrollDistance)
         self.okayButton.Bind(wx.EVT_BUTTON, self.OnClickOkay)
         self.cancelButton.Bind(wx.EVT_BUTTON, self.OnClickCancel)
 
+        self.SetDistance(self.depthPanel.distance)
+        self.UpdateDistance()
+        self.UpdateColormap()
+
     def __del__(self):
         pass
 
     def OnChooseColormap(self, event):
-        self.depthPanel.colormap = self.colormapHash[self.colormapChoice.GetCurrentSelection()]
+        self.UpdateColormap()
 
     def OnScrollDistance(self, event):
-        distanceValue = self.distanceSlider.GetValue() / 300
+        self.UpdateDistance()
+
+    def OnClickOkay(self, event):
+        self.Close()
+
+    def OnClickCancel(self, event):
+        self.Close()
+
+    DISTANCE_MULTIPLIER = 300
+
+    def SetDistance(self, value=0.03):
+        self.distanceSlider.SetValue(value * self.DISTANCE_MULTIPLIER)
+
+
+    def UpdateDistance(self):
+        distanceValue = self.distanceSlider.GetValue() / self.DISTANCE_MULTIPLIER
         self.depthPanel.distance = distanceValue
         self.distanceText.ChangeValue(str(distanceValue))
 
-    def OnClickOkay(self, event):
-        event.Skip()
+    def UpdateColormap(self):
+        self.depthPanel.colormap = self.colormapHash[self.colormapChoice.GetCurrentSelection()]
 
-    def OnClickCancel(self, event):
-        event.Skip()
 
 
 if __name__ == '__main__':
 
     pipeline = rs.pipeline()
     config = rs.config()
-    config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-    config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+    w = 800
+    h = 600
+    config.enable_stream(rs.stream.depth, w, h, rs.format.z16, 30)
+    #config.enable_stream(rs.stream.color, w, h, rs.format.bgr8, 30)
     pipeline.start(config)
 
     app = wx.App()
-    frame = PaintBotFrame(None)
+    frame = PaintBotFrame(None, (w, h))
+    frame.Fit()
     frame.Show()
     app.MainLoop()
 
