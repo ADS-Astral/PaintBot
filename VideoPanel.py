@@ -3,7 +3,7 @@ import wx
 
 class VideoPanel(wx.Panel):
 
-    fps = 15
+    fps = 30
     width = 0
     height = 0
     bitmap = None
