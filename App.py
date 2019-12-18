@@ -252,15 +252,16 @@ if __name__ == '__main__':
 
     pipeline = rs.pipeline()
     config = rs.config()
-    w = 800
-    h = 600
-    config.enable_stream(rs.stream.depth, w, h, rs.format.z16, 30)
-    #config.enable_stream(rs.stream.color, w, h, rs.format.bgr8, 30)
+    w = 640
+    h = 480
+    config.enable_stream(rs.stream.depth, w, h, rs.format.z16, 15)
+    #config.enable_stream(rs.stream.color, w, h, rs.format.bgr8, 030)
     pipeline.start(config)
 
     app = wx.App()
     frame = PaintBotFrame(None, (w, h))
     frame.Fit()
+
     frame.Show()
     app.MainLoop()
 
