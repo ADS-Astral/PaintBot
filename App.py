@@ -161,7 +161,7 @@ class PaintBotFrame(wx.Frame):
                 u"Winter",
         ]
 
-	    self.colormapChoice = wx.Choice(
+        self.colormapChoice = wx.Choice(
             colormapSizer.GetStaticBox(),
             wx.ID_ANY,
             wx.DefaultPosition,
