@@ -111,7 +111,12 @@ class PaintBotFrame(wx.Frame):
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
+        # Hashmap for gradient colour schemes. Range produces gradients of colour
+        # Choice assigns ID -> Colour HashMap. ID=key.
+
         colormapSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Color Map"), wx.VERTICAL)
+
+        # Gradient schemes
 
         self.colormapHash = [
             cv.COLORMAP_AUTUMN,
@@ -136,6 +141,7 @@ class PaintBotFrame(wx.Frame):
 #            cv.COLORMAP_VIRIDIS,
             cv.COLORMAP_WINTER,
         ]
+
 
         colormapChoiceValues = [
                 u"Autumn",

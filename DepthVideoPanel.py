@@ -18,12 +18,16 @@ class DepthVideoPanel(VideoPanel):
         pass
 
     def GetDataBuffer(self):
+
         # Start streaming
+        frames = self.pipeline.wait_for_frames(1000)
+
         depth_sensor = profile.get_device().first_depth_sensor()
         depth_scale = depth_sensor.get_depth_scale()
-        frames = self.pipeline.wait_for_frames(1000)
+        
         depth_frame = frames.get_depth_frame()
         depth_image = np.asanyarray(depth_frame.get_data())
+        
         depth = depth_image[320,240].astype(float)
         distance = depth * depth_scale
 
