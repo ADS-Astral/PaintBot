@@ -1,0 +1,31 @@
+Data Structure Template for paint Robot
+
+LEGEND
+---------------------------------------
+-->             = 'Breakout', deeper layer unpacked
+Timestamp       = Key
+Variable:Object = Dictionary|List|Hashmap 
+-goto-          = next step in secquence
+----------------------------------------
+
+GUI (Last Job)-Button -goto- Last Job Stats
+
+-------------Last Job Stats----------------
+Wall 1
+12:46:30:sensors --> ,Distance  :float
+12:46:31:sensors     ,Depth     :(3 vector) P1[x1,y1,z1]
+12:46:32:sensors     ,Battery   :int %--Voltage reading 
+12:46:33:sensors     ,Paint     : string ON 
+12:46:34:sensors     ,D_Frame   :Bitmap
+12:46:35:sensors	 ,Vid_Frame :Bitmap
+12:46:36:sensors
+Wall 2
+12:46:37:sensors --> ,Distance  :float
+12:46:38:sensors     ,Depth     :(3 vector) P1[x1,y1,z1]
+12:46:39:sensors     ,Battery   :int %
+12:46:40:sensors     ,Paint     : string ON 
+12:46:41:sensors     ,D_Frame   :Bitmap
+12:46:42:sensors	 ,Vid_Frame :Bitmap
+12:46:43:sensors
+
+
