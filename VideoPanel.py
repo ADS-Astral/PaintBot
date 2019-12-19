@@ -3,7 +3,6 @@ import wx
 
 class VideoPanel(wx.Panel):
 
-    fps = 15
     width = 0
     height = 0
     bitmap = None
@@ -18,7 +17,7 @@ class VideoPanel(wx.Panel):
         self.bitmap = wx.BitmapFromBuffer(self.width, self.height, frame)
 
         self.timer = wx.Timer(self)
-        self.timer.Start(1000 / self.fps)
+        self.timer.Start()
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_TIMER, self.NextFrame)
