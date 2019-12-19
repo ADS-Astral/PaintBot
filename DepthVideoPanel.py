@@ -27,12 +27,16 @@ class DepthVideoPanel(VideoPanel):
         # get distance to object in center of camera feed
         depth_sensor = profile.get_device().first_depth_sensor()
         depth_scale = depth_sensor.get_depth_scale()
+        try:
+            frames = self.pipeline.wait_for_frames(1000)
+        except RuntimeError:
+            return None  # todo: error for frame not arriving within 1 sec
         depth_frame = frames.get_depth_frame()
         depth_image = np.asanyarray(depth_frame.get_data())
         depth = depth_image[Y, X].astype(float)
         distance = depth * depth_scale
-        print ("Distance (m):  {:.2f}".format(distance))
 
+        print("Distance (m):  {:.2f}".format(distance))
         dst = None
         depth_colormap = cv.applyColorMap(cv.convertScaleAbs(depth_image, alpha=self.distance), colormap=self.colormap, dst=dst)
         buffer = cv.cvtColor(depth_colormap, cv.COLOR_BGR2RGB)
