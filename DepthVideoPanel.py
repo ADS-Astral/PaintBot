@@ -32,6 +32,11 @@ class DepthVideoPanel(VideoPanel):
         except RuntimeError:
             return None  # todo: error for frame not arriving within 1 sec
 
+        # Get gyro and accel data
+        motion_data = frames.as_motion_frame().get_motion_data()
+        print(motion_data)
+        print(np.array([motion_data.x, motion_data.y, motion_data.z]))
+
         # Get distance to object in center of camera feed
         depth_sensor = self.profile.get_device().first_depth_sensor()
         depth_scale = depth_sensor.get_depth_scale()

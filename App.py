@@ -254,6 +254,8 @@ if __name__ == '__main__':
     config = rs.config()
     w = 640
     h = 480
+    config.enable_stream(rs.stream.accel, rs.format.motion_xyz32f, 62)
+    config.enable_stream(rs.stream.gyro, rs.format.motion_xyz32f, 200)
     config.enable_stream(rs.stream.depth, w, h, rs.format.z16, 15)
     #config.enable_stream(rs.stream.color, w, h, rs.format.bgr8, 030)
     pipeline.start(config)
