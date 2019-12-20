@@ -33,6 +33,15 @@ const int increment_time = 1; // time in seconds
 int motor_state = 0;         // variable for reading the pushbutton status
 
 void setup() {
+
+
+  //2 outputs 
+  // Serial1 = reading incoming data 
+  // Serial  =  print to screen
+
+  Serial.begin(9600);
+  Serial1.begin(9600);
+}
   // initialize the L298-H Bridge pins as outputs:
   
   pinMode(EN_A, OUTPUT);
@@ -51,6 +60,12 @@ void setup() {
 }
 
 void loop() {
+
+  if (Serial1.available()) {
+    delay(100); //allows all serial sent to be received together
+    // i<4 number of characters
+    while(Serial1.available() && i<3) {
+      str[i++] = Serial1.read();
   
   switch (motor_state) {
 
@@ -59,27 +74,27 @@ void loop() {
   case 0:
     
     //Front Left
-    digitalWrite(EN_A,HIGH)
-    digitalWrite(M1_1,HIGH)
-    digitalWrite(M1_2,LOW)
+    digitalWrite(EN_A,HIGH);
+    digitalWrite(M1_1,HIGH);
+    digitalWrite(M1_2,LOW);
     
     //Front Right
-    digitalWrite(EN_B,HIGH)
-    digitalWrite(M2_1,HIGH)
-    digitalWrite(M2_2,LOW)
+    digitalWrite(EN_B,HIGH);
+    digitalWrite(M2_1,HIGH);
+    digitalWrite(M2_2,LOW);
 
     //Back Left
-    digitalWrite(EN_A1,HIGH)
-    digitalWrite(M3_1,HIGH)
-    digitalWrite(M3_2,LOW)
+    digitalWrite(EN_A1,HIGH);
+    digitalWrite(M3_1,HIGH);
+    digitalWrite(M3_2,LOW);
     
     //Back Right
-    digitalWrite(EN_B1,HIGH)
-    digitalWrite(M4_1,HIGH)
-    digitalWrite(M4_2,LOW)
+    digitalWrite(EN_B1,HIGH);
+    digitalWrite(M4_1,HIGH);
+    digitalWrite(M4_2,LOW);
     
     //Run for the duration of 'increment'
-    delay(increment*1000);
+    delay(increment_time*1000);
     break;
 
 
@@ -88,47 +103,111 @@ void loop() {
   case 1:
       
        //Front Left
-    digitalWrite(EN_A,HIGH)
-    digitalWrite(M1_1,LOW)
-    digitalWrite(M1_2,HIGH)
+    digitalWrite(EN_A,HIGH);
+    digitalWrite(M1_1,LOW);
+    digitalWrite(M1_2,HIGH);
     
     //Front Right
-    digitalWrite(EN_B,HIGH)
-    digitalWrite(M2_1,LOW)
-    digitalWrite(M2_2,HIGH)
+    digitalWrite(EN_B,HIGH);
+    digitalWrite(M2_1,LOW);
+    digitalWrite(M2_2,HIGH);
 
     //Back Left
-    digitalWrite(EN_A1,HIGH)
-    digitalWrite(M3_1,LOW)
-    digitalWrite(M3_2,HIGH)
+    digitalWrite(EN_A1,HIGH);
+    digitalWrite(M3_1,LOW);
+    digitalWrite(M3_2,HIGH);
     
     //Back Right
-    digitalWrite(EN_B1,HIGH)
-    digitalWrite(M4_1,LOW)
-    digitalWrite(M4_2,HIGH)
+    digitalWrite(EN_B1,HIGH);
+    digitalWrite(M4_1,LOW);
+    digitalWrite(M4_2,HIGH);
     
     //Run for the duration of 'increment'
-    delay(increment*1000);
+    delay(increment_time*1000);
+    
+    break;
+
+  // Left Movement
+  case 2:
+      
+       //Front Left
+    digitalWrite(EN_A,HIGH);
+    digitalWrite(M1_1,LOW);
+    digitalWrite(M1_2,HIGH);
+    
+    //Front Right
+    digitalWrite(EN_B,HIGH);
+    digitalWrite(M2_1,LOW);
+    digitalWrite(M2_2,HIGH);
+
+    //Back Left
+    digitalWrite(EN_A1,HIGH);
+    digitalWrite(M3_1,HIGH);
+    digitalWrite(M3_2,LOW);
+    
+    //Back Right
+    digitalWrite(EN_B1,HIGH);
+    digitalWrite(M4_1,LOW);
+    digitalWrite(M4_2,LOW);
+    
+    //Run for the duration of 'increment'
+    delay(increment_time*1000);
+    
+    break;
+
+    // Right Movement
+  case 3:
+      
+       //Front Left --OFF
+    digitalWrite(EN_A,HIGH);
+    digitalWrite(M1_1,LOW);
+    digitalWrite(M1_2,LOW);
+    
+    //Front Right --REV
+    digitalWrite(EN_B,HIGH);
+    digitalWrite(M2_1,LOW);
+    digitalWrite(M2_2,HIGH);
+
+    //Back Left -- OFF
+    digitalWrite(EN_A1,HIGH);
+    digitalWrite(M3_1,LOW);
+    digitalWrite(M3_2,LOW);
+    
+    //Back Right --FWD
+    digitalWrite(EN_B1,HIGH);
+    digitalWrite(M4_1,HIGH);
+    digitalWrite(M4_2,LOW);
+    
+    //Run for the duration of 'increment'
+    delay(increment_time*1000);
     
     break;
     
   //Default all motors activated  
   default:
        //Front Left
-    digitalWrite(EN_A,HIGH)
-   
-    //Front Right
-    digitalWrite(EN_B,HIGH)
+         //Front Left
+    digitalWrite(EN_A,HIGH);
+    digitalWrite(M1_1,LOW);
+    digitalWrite(M1_2,LOW);
     
+    //Front Right
+    digitalWrite(EN_B,HIGH);
+    digitalWrite(M2_1,LOW);
+    digitalWrite(M2_2,LOW);
+
     //Back Left
-    digitalWrite(EN_A1,HIGH)
+    digitalWrite(EN_A1,HIGH);
+    digitalWrite(M3_1,LOW);
+    digitalWrite(M3_2,LOW);
     
     //Back Right
-    digitalWrite(EN_B1,HIGH)
-  
+    digitalWrite(EN_B1,HIGH);
+    digitalWrite(M4_1,LOW);
+    digitalWrite(M4_2,LOW);
     
     //Run for the duration of 'increment'
-    delay(increment*1000);
+    delay(increment_time*1000);
     
     break;
 }
