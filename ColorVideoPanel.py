@@ -9,7 +9,6 @@ class ColorVideoPanel(VideoPanel):
     def __init__(self, parent, capture):
         self.capture = capture
         VideoPanel.__init__(self, parent)
-
         pass
 
     def GetDataBuffer(self):
@@ -19,7 +18,6 @@ class ColorVideoPanel(VideoPanel):
             return buffer
         else:
             return None  # todo: should be an error
-
         pass
 
     pass  # ColorVideoPanel

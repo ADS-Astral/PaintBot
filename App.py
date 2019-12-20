@@ -95,29 +95,41 @@ import numpy as np
 #     frame = PaintBotFrame(None)
 #     frame.Show()
 #     app.MainLoop()
-
+from ColorVideoPanel import ColorVideoPanel
+from DepthInfo import DepthInfo
 from DepthVideoPanel import DepthVideoPanel
 
 
 class PaintBotFrame(wx.Frame):
 
+    capture = None
+    depth_info = None
+
+    colorPanel = None
     depthPanel = None
     colormapHash = []
 
-    def __init__(self, parent, size):
-        wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition, size=size, style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
+    def __init__(self, parent, capture, depth_info):
+        wx.Frame.__init__(
+            self,
+            parent,
+            id=wx.ID_ANY,
+            title=wx.EmptyString,
+            pos=wx.DefaultPosition,
+            style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
 
-        self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
+        self.capture = capture
+        self.depth_info = depth_info
+
+        self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         # Hashmap for gradient colour schemes. Range produces gradients of colour
         # Choice assigns ID -> Colour HashMap. ID=key.
-
         colormapSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Color Map"), wx.VERTICAL)
 
         # Gradient schemes
-
         self.colormapHash = [
             cv.COLORMAP_AUTUMN,
             cv.COLORMAP_BONE,
@@ -141,7 +153,6 @@ class PaintBotFrame(wx.Frame):
 #            cv.COLORMAP_VIRIDIS,
             cv.COLORMAP_WINTER,
         ]
-
 
         colormapChoiceValues = [
                 u"Autumn",
@@ -179,11 +190,13 @@ class PaintBotFrame(wx.Frame):
 
         mainSizer.Add(colormapSizer, 0, wx.EXPAND, 5)
 
-        videoSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Video"), wx.VERTICAL)
+        videoSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Video"), wx.HORIZONTAL)
 
-        self.depthPanel = DepthVideoPanel(self, pipeline)
-        self.depthPanel.SetMinSize(size)
+        self.depthPanel = DepthVideoPanel(self, self.depth_info)
         videoSizer.Add(self.depthPanel, 1, wx.ALL | wx.EXPAND, 5)
+
+        self.colorPanel = ColorVideoPanel(self, self.capture)
+        videoSizer.Add(self.colorPanel, 1, wx.ALL | wx.EXPAND, 5)
 
         mainSizer.Add(videoSizer, 1, wx.EXPAND, 5)
 
@@ -193,8 +206,13 @@ class PaintBotFrame(wx.Frame):
                                         wx.DefaultSize, wx.SL_HORIZONTAL)
         distanceSizer.Add(self.distanceSlider, 1, wx.ALL, 5)
 
-        self.distanceText = wx.TextCtrl(distanceSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-                                        wx.Size(50, -1), wx.TE_READONLY)
+        self.distanceText = wx.TextCtrl(
+            distanceSizer.GetStaticBox(),
+            wx.ID_ANY,
+            wx.EmptyString,
+            wx.DefaultPosition,
+            wx.Size(50, -1),
+            wx.TE_READONLY)
         distanceSizer.Add(self.distanceText, 0, wx.ALL, 5)
 
         mainSizer.Add(distanceSizer, 0, wx.EXPAND, 5)
@@ -219,9 +237,9 @@ class PaintBotFrame(wx.Frame):
         self.okayButton.Bind(wx.EVT_BUTTON, self.OnClickOkay)
         self.cancelButton.Bind(wx.EVT_BUTTON, self.OnClickCancel)
 
-        self.SetDistance(self.depthPanel.distance)
-        self.UpdateDistance()
-        self.UpdateColormap()
+        # self.SetDistance(self.depthPanel.distance)
+        # self.UpdateDistance()
+        # self.UpdateColormap()
 
     def __del__(self):
         pass
@@ -253,24 +271,24 @@ class PaintBotFrame(wx.Frame):
         self.depthPanel.colormap = self.colormapHash[self.colormapChoice.GetCurrentSelection()]
 
 
-
 if __name__ == '__main__':
 
     pipeline = rs.pipeline()
     config = rs.config()
     w = 640
     h = 480
-    config.enable_stream(rs.stream.accel, rs.format.motion_xyz32f, 62)
-    config.enable_stream(rs.stream.gyro, rs.format.motion_xyz32f, 200)
-    config.enable_stream(rs.stream.depth, w, h, rs.format.z16, 15)
-    #config.enable_stream(rs.stream.color, w, h, rs.format.bgr8, 030)
-    pipeline.start(config)
+    # config.enable_stream(rs.stream.accel, rs.format.motion_xyz32f, 62)
+    # config.enable_stream(rs.stream.gyro, rs.format.motion_xyz32f, 200)
+    config.enable_stream(rs.stream.depth, w, h, rs.format.z16, 30)
+    config.enable_stream(rs.stream.color, w, h, rs.format.bgr8, 30)
+    depth_info = DepthInfo(pipeline, config)
+
+    capture = cv.VideoCapture(0)
 
     app = wx.App()
-    frame = PaintBotFrame(None, (w, h))
+
+    frame = PaintBotFrame(None, capture, depth_info)
     frame.Fit()
-
     frame.Show()
-    app.MainLoop()
 
-    pipeline.stop()
+    app.MainLoop()
