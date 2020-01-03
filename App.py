@@ -98,6 +98,7 @@ import numpy as np
 from ColorVideoPanel import ColorVideoPanel
 from DepthInfo import DepthInfo
 from DepthVideoPanel import DepthVideoPanel
+from MotorControl import MotorControl
 
 
 class PaintBotFrame(wx.Frame):
@@ -127,7 +128,7 @@ class PaintBotFrame(wx.Frame):
 
         # Hashmap for gradient colour schemes. Range produces gradients of colour
         # Choice assigns ID -> Colour HashMap. ID=key.
-        colormapSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Color Map"), wx.VERTICAL)
+        colormapSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "Color Map"), wx.VERTICAL)
 
         # Gradient schemes
         self.colormapHash = [
@@ -190,17 +191,18 @@ class PaintBotFrame(wx.Frame):
 
         mainSizer.Add(colormapSizer, 0, wx.EXPAND, 5)
 
-        videoSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Video"), wx.HORIZONTAL)
+        videoSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "Video"), wx.HORIZONTAL)
 
+        # Must initilaized first
         self.depthPanel = DepthVideoPanel(self, self.depth_info)
-        videoSizer.Add(self.depthPanel, 1, wx.ALL | wx.EXPAND, 5)
-
         self.colorPanel = ColorVideoPanel(self, self.capture)
+
         videoSizer.Add(self.colorPanel, 1, wx.ALL | wx.EXPAND, 5)
+        videoSizer.Add(self.depthPanel, 1, wx.ALL | wx.EXPAND, 5)
 
         mainSizer.Add(videoSizer, 1, wx.EXPAND, 5)
 
-        distanceSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Distance"), wx.HORIZONTAL)
+        distanceSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "Distance"), wx.HORIZONTAL)
 
         self.distanceSlider = wx.Slider(distanceSizer.GetStaticBox(), wx.ID_ANY, 0, 0, 100, wx.DefaultPosition,
                                         wx.DefaultSize, wx.SL_HORIZONTAL)
@@ -237,9 +239,8 @@ class PaintBotFrame(wx.Frame):
         self.okayButton.Bind(wx.EVT_BUTTON, self.OnClickOkay)
         self.cancelButton.Bind(wx.EVT_BUTTON, self.OnClickCancel)
 
-        # self.SetDistance(self.depthPanel.distance)
-        # self.UpdateDistance()
-        # self.UpdateColormap()
+        self.SetDistance(self.depthPanel.distance)
+        self.SetColormap(self.depthPanel.colormap)
 
     def __del__(self):
         pass
@@ -256,16 +257,18 @@ class PaintBotFrame(wx.Frame):
     def OnClickCancel(self, event):
         self.Close()
 
-    DISTANCE_MULTIPLIER = 300
+    DISTANCE_MULTIPLIER = 200
 
     def SetDistance(self, value=0.03):
         self.distanceSlider.SetValue(value * self.DISTANCE_MULTIPLIER)
-
 
     def UpdateDistance(self):
         distanceValue = self.distanceSlider.GetValue() / self.DISTANCE_MULTIPLIER
         self.depthPanel.distance = distanceValue
         self.distanceText.ChangeValue(str(distanceValue))
+
+    def SetColormap(self, newColormap):
+        self.depthPanel.colormap = newColormap
 
     def UpdateColormap(self):
         self.depthPanel.colormap = self.colormapHash[self.colormapChoice.GetCurrentSelection()]
@@ -273,6 +276,7 @@ class PaintBotFrame(wx.Frame):
 
 if __name__ == '__main__':
 
+    motorControl = MotorControl()
     pipeline = rs.pipeline()
     config = rs.config()
     w = 640

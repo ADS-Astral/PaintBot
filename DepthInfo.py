@@ -1,9 +1,6 @@
 import time
-
-import cv2 as cv
 import threading
 import numpy as np
-import pyrealsense2 as rs
 
 
 class DepthInfo:
@@ -16,7 +13,6 @@ class DepthInfo:
     profile = None
 
     distance = 0.1
-    colormap = cv.COLORMAP_JET
 
     process = None
 
@@ -51,6 +47,11 @@ class DepthInfo:
         time.sleep(0.01)
         frames = self.GetFrames()
 
+        # Get gyro and accel data
+        # motion_data = frames.as_motion_frame().get_motion_data()
+        # print(motion_data)
+        # print(np.array([motion_data.x, motion_data.y, motion_data.z]))
+
         # Get distance to object in center of camera feed
         depth_sensor = self.profile.get_device().first_depth_sensor()
         depth_scale = depth_sensor.get_depth_scale()
@@ -60,7 +61,7 @@ class DepthInfo:
         depth = depth_image[int(self.height / 2), int(self.width / 2)].astype(float)
         distance = depth * depth_scale
 
-        print("Distance (m):  {:.2f}".format(distance))
+        print("Distance (m): {:.2f}".format(distance))
         pass
 
     pass  # DepthInfo
