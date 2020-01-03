@@ -52,7 +52,7 @@ class DepthInfo:
         frames = self.GetFrames()
 
         # Get distance to object in center of camera feed
-        depth_sensor = self.depth_info.profile.get_device().first_depth_sensor()
+        depth_sensor = self.profile.get_device().first_depth_sensor()
         depth_scale = depth_sensor.get_depth_scale()
         depth_frame = frames.get_depth_frame()
         depth_image = np.asanyarray(depth_frame.get_data())
