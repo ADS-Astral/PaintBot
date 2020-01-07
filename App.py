@@ -276,7 +276,7 @@ class PaintBotFrame(wx.Frame):
 
 if __name__ == '__main__':
 
-    motorControl = MotorControl()
+#    motorControl = MotorControl()
     pipeline = rs.pipeline()
     config = rs.config()
     w = 640

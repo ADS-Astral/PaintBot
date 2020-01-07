@@ -2,7 +2,7 @@ import wx
 
 
 class VideoPanel(wx.Panel):
-
+    fps = 30
     width = 0
     height = 0
 
@@ -17,14 +17,15 @@ class VideoPanel(wx.Panel):
             self.height, self.width = buffer.shape[:2]
             self.bitmap = wx.Bitmap.FromBuffer(self.width, self.height, buffer)
         self.timer = wx.Timer(self)  # Create and start a thread for reading frame-after-frame:
-        self.timer.Start()  # No need to control the speed of the thread since we want maximum speed.
+        self.timer.Start(1000 / self.fps)  # No need to control the speed of the thread since we want maximum speed.
         self.Bind(wx.EVT_PAINT, self.OnPaint)  # Specify callback for whenever panel paints itself.
         self.Bind(wx.EVT_TIMER, self.NextFrame)  # Specify callback for timer of this panel thread.
         pass
 
     def OnPaint(self, event):
-        dc = wx.BufferedPaintDC(self)
-        dc.DrawBitmap(self.bitmap, 0, 0)
+        if self.bitmap is not None:
+            dc = wx.BufferedPaintDC(self)
+            dc.DrawBitmap(self.bitmap, 0, 0)
         pass
 
     def NextFrame(self, event):
