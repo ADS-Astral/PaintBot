@@ -30,18 +30,10 @@ const int increment_time = 1; // time in seconds
 
 // variables will change:
 
-int motor_state = 0;         // variable for reading the pushbutton status
+String incomingByte; // for incoming serial data
+int motorState =0;
 
 void setup() {
-
-
-  //2 outputs 
-  // Serial1 = reading incoming data 
-  // Serial  =  print to screen
-
-  Serial.begin(9600);
-  Serial1.begin(9600);
-}
   // initialize the L298-H Bridge pins as outputs:
   
   pinMode(EN_A, OUTPUT);
@@ -57,159 +49,105 @@ void setup() {
   pinMode(EN_B1, OUTPUT);
   pinMode(M4_1, OUTPUT);
   pinMode(M4_2, OUTPUT);
+
+   Serial.begin(9600); // opens serial port, sets data rate to 9600 bps
 }
+
 
 void loop() {
 
-  if (Serial1.available()) {
-    delay(100); //allows all serial sent to be received together
-    // i<4 number of characters
-    while(Serial1.available() && i<3) {
-      str[i++] = Serial1.read();
+// Read serial until terminator; convert input to int for switch statement.
+// Switch controls direction of the vehicle.
+
+  if (Serial.available() > 0) {
+    // read the incoming byte:
+    incomingByte = Serial.readStringUntil('Q');
+    motorState = incomingByte.toInt();
+
+     // say what you got:
+    Serial.print("I received: ");
+    Serial.println(motorState);
   
-  switch (motor_state) {
+    switch (motorState) {
 
-  //Forward
+    //Forward
   
-  case 0:
+    case 0:
     
-    //Front Left
-    digitalWrite(EN_A,HIGH);
-    digitalWrite(M1_1,HIGH);
-    digitalWrite(M1_2,LOW);
+      //Front Left
+      digitalWrite(EN_A,HIGH);
+      digitalWrite(M1_1,HIGH);
+      digitalWrite(M1_2,LOW);
     
-    //Front Right
-    digitalWrite(EN_B,HIGH);
-    digitalWrite(M2_1,HIGH);
-    digitalWrite(M2_2,LOW);
+      //Front Right
+      digitalWrite(EN_B,HIGH);
+      digitalWrite(M2_1,HIGH);
+      digitalWrite(M2_2,LOW);
 
-    //Back Left
-    digitalWrite(EN_A1,HIGH);
-    digitalWrite(M3_1,HIGH);
-    digitalWrite(M3_2,LOW);
+      //Back Left
+      digitalWrite(EN_A1,HIGH);
+      digitalWrite(M3_1,HIGH);
+      digitalWrite(M3_2,LOW);
     
-    //Back Right
-    digitalWrite(EN_B1,HIGH);
-    digitalWrite(M4_1,HIGH);
-    digitalWrite(M4_2,LOW);
+      //Back Right
+      digitalWrite(EN_B1,HIGH);
+      digitalWrite(M4_1,HIGH);
+      digitalWrite(M4_2,LOW);
     
-    //Run for the duration of 'increment'
-    delay(increment_time*1000);
-    break;
+      //Run for the duration of 'increment'
+      delay(increment_time*1000);
+      break;
 
 
-    //Reverse
+      //Reverse
 
-  case 1:
+      case 1:
+          
+           //Front Left
+        digitalWrite(EN_A,HIGH);
+        digitalWrite(M1_1,LOW);
+        digitalWrite(M1_2,HIGH);
+        
+        //Front Right
+        digitalWrite(EN_B,HIGH);
+        digitalWrite(M2_1,LOW);
+        digitalWrite(M2_2,HIGH);
+    
+        //Back Left
+        digitalWrite(EN_A1,HIGH);
+        digitalWrite(M3_1,LOW);
+        digitalWrite(M3_2,HIGH);
+        
+        //Back Right
+        digitalWrite(EN_B1,HIGH);
+        digitalWrite(M4_1,LOW);
+        digitalWrite(M4_2,HIGH);
+        
+        //Run for the duration of 'increment'
+        delay(increment_time*1000);
+        
+        break;
+        
+      //Default all motors activated  
+      default:
+           //Front Left
+        digitalWrite(EN_A,HIGH);
+       
+        //Front Right
+        digitalWrite(EN_B,HIGH);
+        
+        //Back Left
+        digitalWrite(EN_A1,HIGH);
+        
+        //Back Right
+        digitalWrite(EN_B1,HIGH);
       
-       //Front Left
-    digitalWrite(EN_A,HIGH);
-    digitalWrite(M1_1,LOW);
-    digitalWrite(M1_2,HIGH);
-    
-    //Front Right
-    digitalWrite(EN_B,HIGH);
-    digitalWrite(M2_1,LOW);
-    digitalWrite(M2_2,HIGH);
-
-    //Back Left
-    digitalWrite(EN_A1,HIGH);
-    digitalWrite(M3_1,LOW);
-    digitalWrite(M3_2,HIGH);
-    
-    //Back Right
-    digitalWrite(EN_B1,HIGH);
-    digitalWrite(M4_1,LOW);
-    digitalWrite(M4_2,HIGH);
-    
-    //Run for the duration of 'increment'
-    delay(increment_time*1000);
-    
-    break;
-
-  // Left Movement
-  case 2:
+        
+        //Run for the duration of 'increment'
+        delay(increment_time*1000);
+        
+        break;
+    }
       
-       //Front Left
-    digitalWrite(EN_A,HIGH);
-    digitalWrite(M1_1,LOW);
-    digitalWrite(M1_2,HIGH);
-    
-    //Front Right
-    digitalWrite(EN_B,HIGH);
-    digitalWrite(M2_1,LOW);
-    digitalWrite(M2_2,HIGH);
-
-    //Back Left
-    digitalWrite(EN_A1,HIGH);
-    digitalWrite(M3_1,HIGH);
-    digitalWrite(M3_2,LOW);
-    
-    //Back Right
-    digitalWrite(EN_B1,HIGH);
-    digitalWrite(M4_1,LOW);
-    digitalWrite(M4_2,LOW);
-    
-    //Run for the duration of 'increment'
-    delay(increment_time*1000);
-    
-    break;
-
-    // Right Movement
-  case 3:
-      
-       //Front Left --OFF
-    digitalWrite(EN_A,HIGH);
-    digitalWrite(M1_1,LOW);
-    digitalWrite(M1_2,LOW);
-    
-    //Front Right --REV
-    digitalWrite(EN_B,HIGH);
-    digitalWrite(M2_1,LOW);
-    digitalWrite(M2_2,HIGH);
-
-    //Back Left -- OFF
-    digitalWrite(EN_A1,HIGH);
-    digitalWrite(M3_1,LOW);
-    digitalWrite(M3_2,LOW);
-    
-    //Back Right --FWD
-    digitalWrite(EN_B1,HIGH);
-    digitalWrite(M4_1,HIGH);
-    digitalWrite(M4_2,LOW);
-    
-    //Run for the duration of 'increment'
-    delay(increment_time*1000);
-    
-    break;
-    
-  //Default all motors activated  
-  default:
-       //Front Left
-         //Front Left
-    digitalWrite(EN_A,HIGH);
-    digitalWrite(M1_1,LOW);
-    digitalWrite(M1_2,LOW);
-    
-    //Front Right
-    digitalWrite(EN_B,HIGH);
-    digitalWrite(M2_1,LOW);
-    digitalWrite(M2_2,LOW);
-
-    //Back Left
-    digitalWrite(EN_A1,HIGH);
-    digitalWrite(M3_1,LOW);
-    digitalWrite(M3_2,LOW);
-    
-    //Back Right
-    digitalWrite(EN_B1,HIGH);
-    digitalWrite(M4_1,LOW);
-    digitalWrite(M4_2,LOW);
-    
-    //Run for the duration of 'increment'
-    delay(increment_time*1000);
-    
-    break;
-}
-  
+   }
 }
