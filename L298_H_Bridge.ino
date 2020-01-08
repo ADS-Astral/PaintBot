@@ -11,9 +11,9 @@ const int M1_1 = 3;       // motor1 direction pin (HIGH = FWD)
 const int M1_2 = 4;       // motor1 direction pin (HIGH = REV)
 
 //Front Right Motor
-const int EN_B =  5;      // Pin to enable motor 2
-const int M2_1 = 6;       // motor1 direction pin (HIGH = FWD)
-const int M2_2 = 7;       // motor1 direction pin (HIGH = REV)
+const int EN_B =  7;      // Pin to enable motor 2
+const int M2_1 = 5;       // motor1 direction pin (HIGH = FWD)
+const int M2_2 = 6;       // motor1 direction pin (HIGH = REV)
 
 //Back Left Motor
 const int EN_A1 =  8;      // Pin to enable motor 1
@@ -21,9 +21,9 @@ const int M3_1 = 9;       // motor1 direction pin (HIGH = FWD)
 const int M3_2 = 10;       // motor1 direction pin (HIGH = REV)
 
 //Back Right Motor
-const int EN_B1 =  11;      // Pin to enable motor 2
-const int M4_1 = 12;       // motor1 direction pin (HIGH = FWD)
-const int M4_2 = 13;       // motor1 direction pin (HIGH = REV)
+const int EN_B1 = 13;      // Pin to enable motor 2
+const int M4_1 = 11;       // motor1 direction pin (HIGH = FWD)
+const int M4_2 = 12;       // motor1 direction pin (HIGH = REV)
 
 const int increment_time = 1; // time in seconds
 
@@ -65,7 +65,7 @@ void loop() {
     motorState = incomingByte.toInt();
 
      // say what you got:
-    Serial.print("I received: ");
+    Serial.print("Arduino Received: ");
     Serial.println(motorState);
   
     switch (motorState) {
