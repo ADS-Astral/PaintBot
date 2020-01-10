@@ -1,36 +1,59 @@
-from smbus2 import SMBus
+import serial
 
 
 class MotorControl:
 
-    address = None
-    bus = None
+    serial = None
 
-    def __init__(self):
-        self.address = 0x8
-        self.bus = SMBus(1)
+    def __init__(self, serial_port):
+        self.serial = serial.Serial(
+            port=serial_port,
+            baudrate=57600,
+            timeout=1)
+        self.serial.close()
+        self.serial.open()
         pass
 
-    MOVE_FORWARD = 0
+    def __del__(self):
+        self.serial.close()
+        pass
+
+    def write(self, signal):
+        byte = str(signal).encode('utf-8')
+        self.serial.write(byte)
+        self.serial.flush()
+        read = self.serial.readline()
+        # if read != b'':
+        #     break
+        print(read)
+        pass
+
+    STOP = 0
+
+    def Stop(self):
+        self.write(self.STOP)
+        pass
+
+    MOVE_FORWARD = 1
 
     def MoveForward(self):
-        self.bus.write_byte(self.address, self.MOVE_FORWARD)
+        self.write(self.MOVE_FORWARD)
         pass
 
-    MOVE_REVERSE = 1
+    MOVE_REVERSE = 2
 
     def MoveReverse(self):
-        self.bus.write_byte(self.address, self.MOVE_REVERSE)
+        self.write(self.MOVE_REVERSE)
         pass
 
-    MOVE_LEFT = 2
+    MOVE_LEFT = 3
 
     def MoveLeft(self):
-        self.bus.write_byte(self.address, self.MOVE_LEFT)
+        self.write(self.MOVE_LEFT)
         pass
 
-    MOVE_RIGHT = 3
+    MOVE_RIGHT = 4
 
     def MoveRight(self):
-        self.bus.write_byte(self.address, self.MOVE_RIGHT)
+        self.write(self.MOVE_RIGHT)
         pass
