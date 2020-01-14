@@ -5,107 +5,26 @@ import matplotlib
 import numpy as np
 
 
-# class PaintBotFrame(wx.Frame):
-#
-#     capture = None
-#     panel = None
-#     staticBitmap = None
-#     mainSizer = None
-#
-#     def __init__(self, *args, **kw):
-#         super(PaintBotFrame, self).__init__(*args, **kw)
-#
-#         self.SetTitle("wxPython Frame")
-#         self.SetSize((800, 600))
-#
-#         self.panel = wx.Panel(self)
-#         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-#         #self.staticBitmap = wx.StaticBitmap()
-#         button = wx.Button(self, wx.ID_ANY, "VIRUS")
-#         button.Bind(wx.EVT_BUTTON, self.DoCamera)
-#         #self.mainSizer.Add(self.staticBitmap, 0, wx.ALL, 5)
-#         self.mainSizer.Add(button, 0, wx.ALL, 5)
-#         self.panel.SetSizer(self.mainSizer)
-#
-#         ret, frame = self.capture.read()
-#
-#         frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
-#
-#         self.bmp = wx.BitmapFromBuffer(w, h, frame)
-#
-#         self.Bind(wx.EVT_PAINT, self.OnPaint)
-#         self.Bind(wx.EVT_TIMER, self.NextFrame)
-#
-#     def OnPaint(self, event):
-#         dc = wx.BufferedPaintDC(self)
-#         dc.DrawBitmap(self.bmp, 0, 0)
-#
-#     def NextFrame(self, event):
-#         ret, frame = self.capture.read()
-#         if ret:
-#             frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
-#             self.bmp.CopyFromBuffer(frame)
-#             self.Refresh()
-#
-#     def DoCamera(self, event):
-#
-#         cam = cv.VideoCapture(0)
-#         w = cam.get(cv.CAP_PROP_FRAME_WIDTH)
-#         h = cam.get(cv.CAP_PROP_FRAME_HEIGHT)
-#         stride = 3 * h * w
-#
-#         while True:
-#             ret_val, img = cam.read()
-#             img = cv.flip(img, 1)
-#             pixels = img.tostring()
-#             assert 1.0 == len(pixels) / stride
-#             bmp = wx.Bitmap.FromBuffer(w, h, pixels)
-#             #bmp.SaveFile("test.bmp", wx.BITMAP_TYPE_BMP)
-#             self.staticBitmap = wx.StaticBitmap()
-#             self.staticBitmap.SetBitmap(bmp)
-#             self.mainSizer.Add(self.staticBitmap, 0, wx.ALL, 5)
-#             self.Update()
-#             break
-#             # cv2.imshow('my webcam', img)
-#             if cv.waitKey(1) == 27:
-#                 break
-#         # cv2.destroyAllWindows()
-#
-#     def DoSense(self):
-#
-#         pipe = rs.pipeline()
-#         profile = pipe.start()
-#         try:
-#             msg = ""
-#             for i in range(0, 100):
-#                 frames = pipe.wait_for_frames()
-#                 for f in frames:
-#                     msg += "{} {} {} {}".format(
-#                         f.profile.stream_index(),
-#                         f.profile.stream_name(),
-#                         f.profile.stream_type(),
-#                         f.profile.unique_id()) + "\n"
-#             label = wx.StaticText(self.panel, label=msg, pos=(100, 50), size=(500, 500))
-#         finally:
-#             pipe.stop()
-#
 
-# if __name__ == '__main__':
-#     app = wx.App()
-#     frame = PaintBotFrame(None)
-#     frame.Show()
-#     app.MainLoop()
+
 from ColorVideoPanel import ColorVideoPanel
 from DepthInfo import DepthInfo
 from DepthVideoPanel import DepthVideoPanel
 from MotorControl import MotorControl
 
 
+# Configure depth and color streams
+pipeline = rs.pipeline()
+config = rs.config()
+config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+
+# Start streaming
+pipeline.start(config)
 class PaintBotFrame(wx.Frame):
 
     capture = None
     depth_info = None
-
     colorPanel = None
     depthPanel = None
     colormapHash = []
@@ -134,48 +53,32 @@ class PaintBotFrame(wx.Frame):
         self.colormapHash = [
             cv.COLORMAP_AUTUMN,
             cv.COLORMAP_BONE,
-#            cv.COLORMAP_CIVIDIS,
             cv.COLORMAP_COOL,
             cv.COLORMAP_HOT,
             cv.COLORMAP_HSV,
-#            cv.COLORMAP_INFERNO,
             cv.COLORMAP_JET,
-#            cv.COLORMAP_MAGMA,
             cv.COLORMAP_OCEAN,
             cv.COLORMAP_PARULA,
             cv.COLORMAP_PINK,
-#            cv.COLORMAP_PLASMA,
             cv.COLORMAP_RAINBOW,
             cv.COLORMAP_SPRING,
             cv.COLORMAP_SUMMER,
-#            cv.COLORMAP_TURBO,
-#            cv.COLORMAP_TWILIGHT,
-#            cv.COLORMAP_TWILIGHT_SHIFTED,
-#            cv.COLORMAP_VIRIDIS,
             cv.COLORMAP_WINTER,
         ]
 
         colormapChoiceValues = [
                 u"Autumn",
                 u"Bone",
-#                u"Cividis",
                 u"Cool",
                 u"Hot",
                 u"Hsv",
-#                u"Inferno",
                 u"Jet",
-#                u"Magma",
                 u"Ocean",
                 u"Parula",
                 u"Pink",
-#                u"Plasma",
                 u"Rainbow",
                 u"Spring",
                 u"Summer",
-#                u"Turbo",
-#                u"Twilight",
-#                u"Twilight_shifted",
-#                u"Viridis",
                 u"Winter",
         ]
 
@@ -275,24 +178,43 @@ class PaintBotFrame(wx.Frame):
 
 
 if __name__ == '__main__':
-
-#    motorControl = MotorControl()
-    pipeline = rs.pipeline()
-    config = rs.config()
-    w = 640
-    h = 480
-    # config.enable_stream(rs.stream.accel, rs.format.motion_xyz32f, 62)
-    # config.enable_stream(rs.stream.gyro, rs.format.motion_xyz32f, 200)
-    config.enable_stream(rs.stream.depth, w, h, rs.format.z16, 30)
-    config.enable_stream(rs.stream.color, w, h, rs.format.bgr8, 30)
-    depth_info = DepthInfo(pipeline, config)
-
-    capture = cv.VideoCapture(0)
-
     app = wx.App()
+    app.MainLoop()
+    try:
+        while True:
+            
+            # Wait for a coherent pair of frames: depth and color
+            frames = pipeline.wait_for_frames()
+            depth_frame = frames.get_depth_frame()
+            color_frame = frames.get_color_frame()
+            if not depth_frame or not color_frame:
+                continue
 
-    frame = PaintBotFrame(None, capture, depth_info)
+         # Convert images to numpy arrays
+            depth_image = np.asanyarray(depth_frame.get_data())
+            color_image = np.asanyarray(color_frame.get_data())
+
+        # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
+            depth_colormap = cv.applyColorMap(cv.convertScaleAbs(depth_image, alpha=0.03), cv.COLORMAP_JET)
+
+        # Stack both images horizontally
+            images = np.hstack((color_image, depth_colormap))
+
+        # Show images
+            cv.namedWindow('RealSense', cv.WINDOW_AUTOSIZE)
+            cv.imshow('RealSense', images)
+            cv.waitKey(1)
+            
+
+    finally:
+
+    # Stop streaming
+        pipeline.stop()
+
+    #frame = PaintBotFrame(None, color_image, depth_image)
+   # frame.Fit()
+   # frame.Show()
+    
+    frame = PaintBotFrame(None, color_image, depth_image)
     frame.Fit()
     frame.Show()
-
-    app.MainLoop()
