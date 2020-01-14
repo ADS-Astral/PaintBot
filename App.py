@@ -25,7 +25,6 @@ class PaintBotFrame(wx.Frame):
 
     capture = None
     depth_info = None
-
     colorPanel = None
     depthPanel = None
     colormapHash = []
@@ -205,9 +204,7 @@ if __name__ == '__main__':
             cv.namedWindow('RealSense', cv.WINDOW_AUTOSIZE)
             cv.imshow('RealSense', images)
             cv.waitKey(1)
-            frame = PaintBotFrame(None, color_image, depth_image)
-            frame.Fit()
-            frame.Show()
+            
 
     finally:
 
@@ -217,3 +214,7 @@ if __name__ == '__main__':
     #frame = PaintBotFrame(None, color_image, depth_image)
    # frame.Fit()
    # frame.Show()
+    
+    frame = PaintBotFrame(None, color_image, depth_image)
+    frame.Fit()
+    frame.Show()

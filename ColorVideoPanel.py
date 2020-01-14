@@ -12,9 +12,10 @@ class ColorVideoPanel(VideoPanel):
         pass
 
     def GetDataBuffer(self):
-        result, buffer = self.capture.read()
+        result = True
+        buffer = self.capture
         if result:
-            buffer = cv.cvtColor(buffer, cv.COLOR_BGR2RGB)
+            buffer = cv.cvtColor(self.capture, cv.COLOR_BGR2RGB)
             return buffer
         else:
             return None  # todo: should be an error
