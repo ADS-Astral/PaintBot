@@ -63,7 +63,6 @@ void loop() {
 
             default:
             case STATE_STOP: {
-                break;
                 // Front Left
                 digitalWrite(EN_A, HIGH);
                 digitalWrite(M1_1, LOW);
@@ -83,7 +82,6 @@ void loop() {
                 break;
             }
             case STATE_FORWARD: {
-                break;
                 // Front Left
                 digitalWrite(EN_A, HIGH);
                 digitalWrite(M1_1, HIGH);
@@ -103,7 +101,6 @@ void loop() {
                 break;
             }
             case STATE_BACKWARD: {
-                break;
                 // Front Left
                 digitalWrite(EN_A, HIGH);
                 digitalWrite(M1_1, LOW);
@@ -123,13 +120,41 @@ void loop() {
                 break;
             }
             case STATE_LEFT: {
-                break;
-                //
+                // Front Left
+                digitalWrite(EN_A, HIGH);
+                digitalWrite(M1_1, LOW);
+                digitalWrite(M1_2, HIGH);
+                // Front Right
+                digitalWrite(EN_B, HIGH);
+                digitalWrite(M2_1, HIGH);
+                digitalWrite(M2_2, LOW);
+                // Back Left
+                digitalWrite(EN_A1, HIGH);
+                digitalWrite(M3_1, HIGH);
+                digitalWrite(M3_2, LOW);
+                // Back Right
+                digitalWrite(EN_B1, HIGH);
+                digitalWrite(M4_1, LOW);
+                digitalWrite(M4_2, HIGH);
                 break;
             }
             case STATE_RIGHT: {
-                break;
-                //
+                // Front Left
+                digitalWrite(EN_A, HIGH);
+                digitalWrite(M1_1, HIGH);
+                digitalWrite(M1_2, LOW);
+                // Front Right
+                digitalWrite(EN_B, HIGH);
+                digitalWrite(M2_1, LOW);
+                digitalWrite(M2_2, HIGH);
+                // Back Left
+                digitalWrite(EN_A1, HIGH);
+                digitalWrite(M3_1, LOW);
+                digitalWrite(M3_2, HIGH);
+                // Back Right
+                digitalWrite(EN_B1, HIGH);
+                digitalWrite(M4_1, HIGH);
+                digitalWrite(M4_2, LOW);
                 break;
             }
         }
