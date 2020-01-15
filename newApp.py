@@ -8,17 +8,21 @@ import numpy as np
 import serial
 
 #Configuring Serial Port
-ser = serial.Serial('/dev/ttyACM0', 9600) # Establish the connection on a specific port
+#ser = serial.Serial('/dev/ttyACM0', 9600) # Establish the connection on a specific port
 
 
 # Configure depth and color streams
 pipeline = rs.pipeline()
+pipeline2 = rs.pipeline() # 
 config = rs.config()
+config2 = rs.config()
 config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 6)
 config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+config2.enable_stream(rs.stream.pose)
 
 # Start streaming
 profile = pipeline.start(config)
+pipeline2.start(config2)
 
 # Getting the depth sensor's depth scale 
 depth_sensor = profile.get_device().first_depth_sensor()
@@ -44,7 +48,9 @@ depth_color_scheme = [
         ]
 
 
+
 def main():
+
     #Dummy test variable
     arduino_command = 48
 
@@ -54,11 +60,45 @@ def main():
     # ---===--- define the window layout --- # creating video feed, button & slider
 
     #SimpleGUI layout matches typed structure.
-    layout = [[sg.Text('PAINTBOT 9000', size=(15, 1), font='Helvetica 20'),sg.Text('            Colour scheme for depth feed:', size=(40, 1), font='Helvetica 10'),sg.Slider(range=(0,11),default_value=5,size=(20,15),orientation='horizontal',font=('Helvetica', 12),key='sliderTop'),sg.Button('Exit', size=(7, 1), pad=((600, 0), 3), font='Helvetica 14')],
-              [sg.Image(filename='', key='-image-'),sg.Image(filename='', key='-image2-')],
-              [sg.Text('Distance:', size=(8, 1),font='Helvetica 14'), sg.Text(size=(8, 1),font='Helvetica 14',key='distance'),sg.Text('Received command:',size=(18, 1),font='Helvetica 14'), sg.Text(' ',size=(18, 1),font='Helvetica 14',key='arduino_rec')],
-              [],
-              [sg.Text('Depth Range', size=(15, 1), font='Helvetica 20'),sg.Text(' ', size=(4, 1), font='Helvetica 20',key='sliderOutput'),sg.Text(' m ', size=(8, 1), font='Helvetica 20'),sg.Slider(range=(1,15),default_value=7,size=(20,15),orientation='horizontal',font=('Helvetica', 12),key='sliderBottom')]]
+    layout = [
+        [
+            sg.Text('PAINTBOT 9000_B.Y.', size=(20, 1), font='Helvetica 20'),
+            sg.Text('Colour scheme for depth feed:', size=(40, 1), font='Helvetica 10'),
+            sg.Slider(range=(0,11),default_value=5,size=(20,15),orientation='horizontal',font=('Helvetica', 12),key='sliderTop'),
+            sg.Button('Exit', size=(7, 1), pad=((600, 0), 3), font='Helvetica 14'),
+        ],
+        [
+            sg.Image(filename='', key='-image-'),
+            sg.Image(filename='', key='-image2-'),
+        ],
+        [
+            sg.Text('Distance:', size=(8, 1),font='Helvetica 14'),
+            sg.Text(size=(8, 1),font='Helvetica 14',key='distance'),
+            sg.Text('Received command:',size=(18, 1),font='Helvetica 14'),
+            sg.Text(' ',size=(18, 1),font='Helvetica 14',key='arduino_rec'),
+        ],
+        [
+            sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_position_x'),
+            sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_position_y'),
+            sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_position_z'),
+        ],
+        [
+            sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_velocity_x'),
+            sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_velocity_y'),
+            sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_velocity_z'),
+        ],
+        [
+            sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_acceleration_x'),
+            sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_acceleration_y'),
+            sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_acceleration_z'),
+        ],
+        [
+            sg.Text('Depth Range', size=(15, 1), font='Helvetica 20'),
+            sg.Text(' ', size=(4, 1), font='Helvetica 20',key='sliderOutput'),
+            sg.Text(' m ', size=(8, 1), font='Helvetica 20'),
+            sg.Slider(range=(1,15),default_value=7,size=(20,15),orientation='horizontal',font=('Helvetica', 12),key='sliderBottom'),
+        ]
+    ]
 
     # create the window and show it without the plot
     window = sg.Window('Demo Application - Paintbot',
@@ -86,16 +126,20 @@ def main():
         #Return events for SIMPLEgui
         event, values = window.read(timeout=0)
         if event in ('Exit', None):
+            # close the already opened video file
+            out.release()
             break
         #--REALSENSE-----------
         # Wait for a coherent pair of frames: depth and color
         frames = pipeline.wait_for_frames()
+        poseframes = pipeline2.wait_for_frames()
 
         # Align the depth frame to color frame - Clipping feature
         depth_frame = align.process(frames)
         #Getting depth and a colour frames
         depth_frame = frames.get_depth_frame()
         color_frame = frames.get_color_frame()
+
         if not depth_frame or not color_frame:
             continue
         
@@ -103,6 +147,30 @@ def main():
         # Convert images to numpy arrays THESE ARE EQUIVALENT TO  VIDEO FEED e.g. VideoCapture(0)
         depth_image = np.asanyarray(depth_frame.get_data())
         color_image = np.asanyarray(color_frame.get_data())
+
+        # get gyro and accel data
+        pose = poseframes.get_pose_frame()
+        if pose:
+            # Print some of the pose data to the terminal
+            data = pose.get_pose_data()
+            position_list = str(data.translation).split(',') # position list [x,y,z]
+            velocity_list = str(data.velocity).split(',') # velocity list [x,y,z]
+            acceleration_list = str(data.acceleration).split(',') # acceleration_list [x,y,z]
+           
+            window['robo_position_x'].update("Position: {}".format(position_list[0]))
+            window['robo_position_y'].update("{}".format(position_list[1]))
+            window['robo_position_z'].update("{}".format(position_list[2]))
+            window['robo_velocity_x'].update("Velocity: {}".format(velocity_list[0]))
+            window['robo_velocity_y'].update("{}".format(velocity_list[1]))
+            window['robo_velocity_z'].update("{}".format(velocity_list[2]))
+            window['robo_acceleration_x'].update("Acceleration: {}".format(acceleration_list[0]))
+            window['robo_acceleration_y'].update("{}".format(acceleration_list[1]))
+            window['robo_acceleration_z'].update("{}".format(acceleration_list[2]))
+            print("Frame #{}".format(pose.frame_number))
+            print("Position: {}".format(data.translation))
+            print("Velocity: {}".format(data.velocity))
+            print("Acceleration: {}\n".format(data.acceleration))
+        
 
         #Adds text to both video feeds
         font = cv2.FONT_HERSHEY_SIMPLEX
@@ -143,9 +211,19 @@ def main():
         
 
         # Collecting indervidual frames converting to an image and updating GUI
-        frame = images
-        imgbytes = cv2.imencode('.png', frame)[1].tobytes()  # create image type
-        image_elem.update(data=imgbytes)                     # Update window in widget
+        frame = cv2.imencode('.png', images)
+
+        scale_percent = 20
+        # width = int(frame1.shape[1] * scale_percent / 100)
+        # height = int(frame1.shape[0] * scale_percent / 100)
+        # dim = (width, height)
+        # small_video = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
+        imgbytes = frame[1].tobytes()  # create image type
+        # imagebytes2 = small_video[1].tobytes
+        image_elem.update(data=imgbytes) # Update window in widget
+        # image_elem2.update(data=imgbytes2)
+
+        
 
         # Sending data to arduino and printing the recieved data from arduino
          
@@ -154,10 +232,10 @@ def main():
         if arduino_command == 56:
             arduino_command = 48
                                    # 48 = ASCII(0), commands range: 48-56 -> ASCII (0-8)
-        ser.write(str.encode(chr(arduino_command))) # Convert the decimal number to ASCII then send it to the Arduino
+        # ser.write(str.encode(chr(arduino_command))) # Convert the decimal number to ASCII then send it to the Arduino
        
         # Update GUI with received arduino command
-        window['arduino_rec'].update(ser.readline())
+        #window['arduino_rec'].update(ser.readline())
         # Refreshes GUI interface
         window.Refresh()
 
