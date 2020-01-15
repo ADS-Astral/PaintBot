@@ -5,11 +5,16 @@ import cv2 as cv2
 import io
 import pyrealsense2 as rs
 import numpy as np
-import serial
+from MotorControl import MotorControl
+import threading
+from serial import Serial
 
-#Configuring Serial Port
-ser = serial.Serial('/dev/ttyACM0', 9600) # Establish the connection on a specific port
 
+# Configuring Serial Port
+serial = Serial(  # Establish the connection on a specific port
+    port="COM10",  # /dev/ttyACM0
+    baudrate=9600,
+    timeout=1)
 
 # Configure depth and color streams
 pipeline = rs.pipeline()
@@ -44,9 +49,27 @@ depth_color_scheme = [
         ]
 
 
+class Distance:
+    value = 0
+    pass
+
+
+def DistanceControl(motorControl, distance):
+    while True:
+        print(distance.value)
+        if distance.value >= 0.4:
+            motorControl.MoveForward()
+        elif distance.value <= 0.2:
+            motorControl.MoveReverse()
+        pass
+
+
 def main():
-    #Dummy test variable
-    arduino_command = 48
+
+    distance = Distance()
+    motorControl = MotorControl(serial)
+    distanceThread = threading.Thread(target=DistanceControl, args=(motorControl, distance))
+    distanceThread.start()
 
     #sg.theme_previewer()
     sg.theme('DarkPurple5')
@@ -136,10 +159,10 @@ def main():
 
         # Collects depth data and prints it in float format
         depth = depth_image[320,240].astype(float)          # 320,240 is center of screen
-        distance = round(depth * depth_scale, 2)            # rounding to 2 sig figs
+        distance.value = round(depth * depth_scale, 2)            # rounding to 2 sig figs
         
         #Update GUI with distance
-        window['distance'].update(distance)
+        window['distance'].update(distance.value)
         
 
         # Collecting indervidual frames converting to an image and updating GUI
@@ -147,18 +170,10 @@ def main():
         imgbytes = cv2.imencode('.png', frame)[1].tobytes()  # create image type
         image_elem.update(data=imgbytes)                     # Update window in widget
 
-        # Sending data to arduino and printing the recieved data from arduino
-         
-        arduino_command +=1
-        
-        if arduino_command == 56:
-            arduino_command = 48
-                                   # 48 = ASCII(0), commands range: 48-56 -> ASCII (0-8)
-        ser.write(str.encode(chr(arduino_command))) # Convert the decimal number to ASCII then send it to the Arduino
-       
         # Update GUI with received arduino command
-        window['arduino_rec'].update(ser.readline())
+        window['arduino_rec'].update(serial.readline())
         # Refreshes GUI interface
         window.Refresh()
 
-main() # Run main class
+
+main()  # Run main class
