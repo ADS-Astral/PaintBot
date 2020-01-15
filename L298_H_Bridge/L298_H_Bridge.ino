@@ -122,6 +122,16 @@ void loop() {
                 digitalWrite(M4_2, HIGH);
                 break;
             }
+            case STATE_LEFT: {
+                break;
+                //
+                break;
+            }
+            case STATE_RIGHT: {
+                break;
+                //
+                break;
+            }
         }
     }
     delay(100); // delay for 1/10 of a second

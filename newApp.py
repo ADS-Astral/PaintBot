@@ -54,21 +54,29 @@ class Distance:
     pass
 
 
-def DistanceControl(motorControl, distance):
+def DistanceControl(motorControl, distance, direction):
     while True:
         print(distance.value)
         if distance.value >= 0.4:
             motorControl.MoveForward()
         elif distance.value <= 0.2:
             motorControl.MoveReverse()
+        else:
+            if direction == MotorControl.STATE_LEFT:
+                motorControl.MoveLeft()
+            elif direction == MotorControl.STATE_RIGHT:
+                motorControl.MoveRight()
+            else:
+                motorControl.Stop()
         pass
 
 
 def main():
 
-    distance = Distance()
     motorControl = MotorControl(serial)
-    distanceThread = threading.Thread(target=DistanceControl, args=(motorControl, distance))
+    distance = Distance()
+    direction = MotorControl.STATE_RIGHT
+    distanceThread = threading.Thread(target=DistanceControl, args=(motorControl, distance, direction))
     distanceThread.start()
 
     #sg.theme_previewer()
