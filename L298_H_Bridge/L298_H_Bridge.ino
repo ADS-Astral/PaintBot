@@ -24,7 +24,7 @@ const int STATE_LEFT        = 3;
 const int STATE_RIGHT       = 4;
 
 
-void setup() {
+void setup() { // todo: bypass writing pins using PORTB
 
     // Initialize the L298-H Bridge pins as outputs:
     pinMode(EN_A,   OUTPUT);
@@ -50,12 +50,10 @@ void setup() {
 
 void loop() {
 
-    unsigned char state = ' ';
-
     if (Serial.available()) {
 
         // Fetch incoming byte as state
-        state = Serial.read();
+        char state = Serial.read();
         // Transmit state of motor
         Serial.print(state);
 
@@ -161,4 +159,3 @@ void loop() {
     }
     delay(100); // delay for 1/10 of a second
 }
-
