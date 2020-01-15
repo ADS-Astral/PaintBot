@@ -12,9 +12,11 @@ from serial import Serial
 
 # Configuring Serial Port
 serial = Serial(  # Establish the connection on a specific port
-    port="COM10",  # /dev/ttyACM0
+    port="COM9",  # Linux: /dev/ttyACM0
     baudrate=9600,
     timeout=1)
+serial.close()
+serial.open()
 
 # Configure depth and color streams
 pipeline = rs.pipeline()
@@ -46,7 +48,7 @@ depth_color_scheme = [
     cv2.COLORMAP_SPRING,
     cv2.COLORMAP_SUMMER,
     cv2.COLORMAP_WINTER,
-        ]
+]
 
 
 class Distance:
@@ -109,6 +111,9 @@ def main():
     align_to = rs.stream.color
     align = rs.align(align_to)
 
+    captureSize = None
+    captureHalfSize = None
+
 
     # ---===--- LOOP through video file by frame --- #
     
@@ -162,18 +167,24 @@ def main():
         depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), depth_color_scheme[int(slider_top_value)])
         bg_removed_colormap = cv2.applyColorMap(cv2.convertScaleAbs(bg_removed, alpha=0.03), depth_color_scheme[int(slider_top_value)])
 
+        if captureSize is None:
+            captureSize = bg_removed_colormap.shape[:2]
+            captureHalfSize = (int(captureSize[1] / 2), int(captureSize[0] / 2))
+
         # Stack both images horizontally
         images = np.hstack((color_image, bg_removed_colormap))
 
         # Collects depth data and prints it in float format
-        depth = depth_image[320,240].astype(float)          # 320,240 is center of screen
+        depth = depth_image[captureHalfSize[1], captureHalfSize[0]].astype(float)
         distance.value = round(depth * depth_scale, 2)            # rounding to 2 sig figs
         
         #Update GUI with distance
         window['distance'].update(distance.value)
+
+        serial.write(str.encode(chr(48)))  # Convert the decimal number to ASCII then send it to the Arduino
         
 
-        # Collecting indervidual frames converting to an image and updating GUI
+        # Collecting individual frames converting to an image and updating GUI
         frame = images
         imgbytes = cv2.imencode('.png', frame)[1].tobytes()  # create image type
         image_elem.update(data=imgbytes)                     # Update window in widget
