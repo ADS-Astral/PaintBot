@@ -49,15 +49,14 @@ class Feed:
 
     distance = 0
     battery = 0
-    colorFrame = None
-    depthFrame = None
+    paint = ""
+    position = None
+    rotation = 0
 
     def ToRow(self):
         return [
             self.distance,
             self.battery,
-            self.colorFrame,
-            self.depthFrame,
         ]
         pass
 

@@ -1,17 +1,16 @@
-import serial
-
 
 class MotorControl:
 
+    STATE_STOP = 0
+    STATE_FORWARD = 1
+    STATE_REVERSE = 2
+    STATE_LEFT = 3
+    STATE_RIGHT = 4
+
     serial = None
 
-    def __init__(self, serial_port):
-        self.serial = serial.Serial(
-            port=serial_port,
-            baudrate=57600,
-            timeout=1)
-        self.serial.close()
-        self.serial.open()
+    def __init__(self, serial):
+        self.serial = serial
         pass
 
     def __del__(self):
@@ -21,39 +20,24 @@ class MotorControl:
     def write(self, signal):
         byte = str(signal).encode('utf-8')
         self.serial.write(byte)
-        self.serial.flush()
-        read = self.serial.readline()
-        # if read != b'':
-        #     break
-        print(read)
         pass
-
-    STOP = 0
 
     def Stop(self):
-        self.write(self.STOP)
+        self.write(self.STATE_STOP)
         pass
-
-    MOVE_FORWARD = 1
 
     def MoveForward(self):
-        self.write(self.MOVE_FORWARD)
+        self.write(self.STATE_FORWARD)
         pass
-
-    MOVE_REVERSE = 2
 
     def MoveReverse(self):
-        self.write(self.MOVE_REVERSE)
+        self.write(self.STATE_REVERSE)
         pass
-
-    MOVE_LEFT = 3
 
     def MoveLeft(self):
-        self.write(self.MOVE_LEFT)
+        self.write(self.STATE_LEFT)
         pass
 
-    MOVE_RIGHT = 4
-
     def MoveRight(self):
-        self.write(self.MOVE_RIGHT)
+        self.write(self.STATE_RIGHT)
         pass

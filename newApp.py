@@ -5,19 +5,26 @@ import cv2 as cv2
 import io
 import pyrealsense2 as rs
 import numpy as np
-import serial
+from MotorControl import MotorControl
+import threading
+from serial import Serial
 
-#Configuring Serial Port
-#ser = serial.Serial('/dev/ttyACM0', 9600) # Establish the connection on a specific port
 
+# Configuring Serial Port
+# serial = Serial(  # Establish the connection on a specific port
+#     port="/dev/ttyACM0",  # Linux: /dev/ttyACM0
+#     baudrate=9600,
+#     timeout=1)
+# serial.close()
+# serial.open()
 
 # Configure depth and color streams
 pipeline = rs.pipeline()
 pipeline2 = rs.pipeline() # 
 config = rs.config()
 config2 = rs.config()
-config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 6)
-config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+config.enable_stream(rs.stream.depth, 424, 240, rs.format.z16, 6)
+config.enable_stream(rs.stream.color, 424, 240, rs.format.bgr8, 30)
 config2.enable_stream(rs.stream.pose)
 
 # Start streaming
@@ -45,14 +52,39 @@ depth_color_scheme = [
     cv2.COLORMAP_SPRING,
     cv2.COLORMAP_SUMMER,
     cv2.COLORMAP_WINTER,
-        ]
+]
+
+
+class Distance:
+    value = 0
+    pass
+
+
+def DistanceControl(motorControl, distance, direction):
+    while True:
+        #print(distance.value)
+        if distance.value >= 0.4:
+            motorControl.MoveForward()
+        elif distance.value <= 0.2:
+            motorControl.MoveReverse()
+        else:
+            if direction == MotorControl.STATE_LEFT:
+                motorControl.MoveLeft()
+            elif direction == MotorControl.STATE_RIGHT:
+                motorControl.MoveRight()
+            else:
+                motorControl.Stop()
+        pass
 
 
 
 def main():
 
-    #Dummy test variable
-    arduino_command = 48
+    # motorControl = MotorControl(serial)
+    distance = Distance()
+    # direction = MotorControl.STATE_RIGHT
+    # distanceThread = threading.Thread(target=DistanceControl, args=(motorControl, distance, direction))
+    # distanceThread.start()
 
     #sg.theme_previewer()
     sg.theme('DarkPurple5')
@@ -65,11 +97,11 @@ def main():
             sg.Text('PAINTBOT 9000_B.Y.', size=(20, 1), font='Helvetica 20'),
             sg.Text('Colour scheme for depth feed:', size=(40, 1), font='Helvetica 10'),
             sg.Slider(range=(0,11),default_value=5,size=(20,15),orientation='horizontal',font=('Helvetica', 12),key='sliderTop'),
-            sg.Button('Exit', size=(7, 1), pad=((600, 0), 3), font='Helvetica 14'),
+            sg.Button('Exit', size=(7, 1), font='Helvetica 14'),
         ],
         [
             sg.Image(filename='', key='-image-'),
-            sg.Image(filename='', key='-image2-'),
+            # sg.Image(filename='', key='-image2-'),
         ],
         [
             sg.Text('Distance:', size=(8, 1),font='Helvetica 14'),
@@ -79,18 +111,18 @@ def main():
         ],
         [
             sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_position_x'),
-            sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_position_y'),
-            sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_position_z'),
+            sg.Text(' ',size=(10, 1),font='Helvetica 14',key='robo_position_y'),
+            sg.Text(' ',size=(10, 1),font='Helvetica 14',key='robo_position_z'),
         ],
         [
             sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_velocity_x'),
-            sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_velocity_y'),
-            sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_velocity_z'),
+            sg.Text(' ',size=(10, 1),font='Helvetica 14',key='robo_velocity_y'),
+            sg.Text(' ',size=(10, 1),font='Helvetica 14',key='robo_velocity_z'),
         ],
         [
             sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_acceleration_x'),
-            sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_acceleration_y'),
-            sg.Text(' ',size=(35, 1),font='Helvetica 14',key='robo_acceleration_z'),
+            sg.Text(' ',size=(10, 1),font='Helvetica 14',key='robo_acceleration_y'),
+            sg.Text(' ',size=(10, 1),font='Helvetica 14',key='robo_acceleration_z'),
         ],
         [
             sg.Text('Depth Range', size=(15, 1), font='Helvetica 20'),
@@ -108,7 +140,7 @@ def main():
 
     # locate the elements we'll be updating. Does the search only 1 time
     image_elem = window['-image-']
-    image_elem2 = window['-image2-']
+    # image_elem2 = window['-image2-']
 
     
 #-----Depth clipping feature----------
@@ -117,6 +149,9 @@ def main():
 # The "align_to" is the stream type to which we plan to align depth frames.
     align_to = rs.stream.color
     align = rs.align(align_to)
+
+    captureSize = None
+    captureHalfSize = None
 
 
     # ---===--- LOOP through video file by frame --- #
@@ -136,7 +171,7 @@ def main():
 
         # Align the depth frame to color frame - Clipping feature
         depth_frame = align.process(frames)
-        #Getting depth and a colour frames
+        # Getting depth and a colour frames
         depth_frame = frames.get_depth_frame()
         color_frame = frames.get_color_frame()
 
@@ -153,19 +188,20 @@ def main():
         if pose:
             # Print some of the pose data to the terminal
             data = pose.get_pose_data()
-            position_list = str(data.translation).split(',') # position list [x,y,z]
-            velocity_list = str(data.velocity).split(',') # velocity list [x,y,z]
-            acceleration_list = str(data.acceleration).split(',') # acceleration_list [x,y,z]
+
+            # position_list = str(data.translation).split(',') # position list [x,y,z]
+            # velocity_list = str(data.velocity).split(',') # velocity list [x,y,z]
+            # acceleration_list = str(data.acceleration).split(',') # acceleration_list [x,y,z]
            
-            window['robo_position_x'].update("Position: {}".format(position_list[0]))
-            window['robo_position_y'].update("{}".format(position_list[1]))
-            window['robo_position_z'].update("{}".format(position_list[2]))
-            window['robo_velocity_x'].update("Velocity: {}".format(velocity_list[0]))
-            window['robo_velocity_y'].update("{}".format(velocity_list[1]))
-            window['robo_velocity_z'].update("{}".format(velocity_list[2]))
-            window['robo_acceleration_x'].update("Acceleration: {}".format(acceleration_list[0]))
-            window['robo_acceleration_y'].update("{}".format(acceleration_list[1]))
-            window['robo_acceleration_z'].update("{}".format(acceleration_list[2]))
+            window['robo_position_x'].update("Position in meters relative to start: x: {}".format(round(float(data.translation.x), 3)))
+            window['robo_position_y'].update("y: {}".format(round(float(data.translation.y), 3)))
+            window['robo_position_z'].update("z: {}".format(round(float(data.translation.z), 3)))
+            window['robo_velocity_x'].update("Velocity in meters/sec: x: {}".format(round(float(data.velocity.x), 3)))
+            window['robo_velocity_y'].update("y: {}".format(round(float(data.velocity.y), 3)))
+            window['robo_velocity_z'].update("z: {}".format(round(float(data.velocity.z), 3)))
+            window['robo_acceleration_x'].update("Acceleration in meters/sec^2: x: {}".format(round(float(data.acceleration.x), 3)))
+            window['robo_acceleration_y'].update("y: {}".format(round(float(data.acceleration.y), 3)))
+            window['robo_acceleration_z'].update("z: {}".format(round(float(data.acceleration.z), 3)))
             print("Frame #{}".format(pose.frame_number))
             print("Position: {}".format(data.translation))
             print("Velocity: {}".format(data.velocity))
@@ -174,9 +210,10 @@ def main():
 
         #Adds text to both video feeds
         font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(color_image,str(datetime.now()),(10,30), font, 1,(255,255,255),2,cv2.LINE_AA)
+        time_string = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        cv2.putText(color_image,str(time_string),(10,30), font, 1,(255,255,255),2,cv2.LINE_AA)
         cv2.putText(color_image,str('Front Cam'),(10,450), font, 1,(255,255,255),2,cv2.LINE_AA)
-        cv2.putText(depth_image,str(datetime.now()),(10,30), font, 1,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(depth_image,str(time_string),(10,30), font, 1,(255,255,255),2,cv2.LINE_AA)
         cv2.putText(depth_image,str('Depth Cam'),(10,450), font, 1,(255,255,255),2,cv2.LINE_AA)
         
         #Converting slider point to variables & updating GUI
@@ -199,15 +236,21 @@ def main():
         depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), depth_color_scheme[int(slider_top_value)])
         bg_removed_colormap = cv2.applyColorMap(cv2.convertScaleAbs(bg_removed, alpha=0.03), depth_color_scheme[int(slider_top_value)])
 
+        if captureSize is None:
+            captureSize = bg_removed_colormap.shape[:2]
+            captureHalfSize = (int(captureSize[1] / 2), int(captureSize[0] / 2))
+
         # Stack both images horizontally
         images = np.hstack((color_image, bg_removed_colormap))
 
         # Collects depth data and prints it in float format
-        depth = depth_image[320,240].astype(float)          # 320,240 is center of screen
-        distance = round(depth * depth_scale, 2)            # rounding to 2 sig figs
+        depth = depth_image[captureHalfSize[1], captureHalfSize[0]].astype(float)
+        distance.value = round(depth * depth_scale, 2)            # rounding to 2 sig figs
         
         #Update GUI with distance
-        window['distance'].update(distance)
+        window['distance'].update(distance.value)
+
+        # serial.write(str.encode(chr(48)))  # Convert the decimal number to ASCII then send it to the Arduino
         
 
         # Collecting indervidual frames converting to an image and updating GUI
@@ -223,19 +266,13 @@ def main():
         image_elem.update(data=imgbytes) # Update window in widget
         # image_elem2.update(data=imgbytes2)
 
-        
-
         # Sending data to arduino and printing the recieved data from arduino
          
-        arduino_command +=1
-        
-        if arduino_command == 56:
-            arduino_command = 48
-                                   # 48 = ASCII(0), commands range: 48-56 -> ASCII (0-8)
+        # 48 = ASCII(0), commands range: 48-56 -> ASCII (0-8)
         # ser.write(str.encode(chr(arduino_command))) # Convert the decimal number to ASCII then send it to the Arduino
        
         # Update GUI with received arduino command
-        #window['arduino_rec'].update(ser.readline())
+        # window['arduino_rec'].update(serial.readline())
         # Refreshes GUI interface
         window.Refresh()
 
