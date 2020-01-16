@@ -39,7 +39,7 @@ void setup() { // todo: bypass writing pins using PORTB
     pinMode(EN_B1,  OUTPUT);
     pinMode(M4_1,   OUTPUT);
     pinMode(M4_2,   OUTPUT);
-    pinMode(0,      OUTPUT);
+    
 
     // Open serial port to particular data rate in BPS
     Serial.begin(9600);
@@ -52,8 +52,9 @@ void loop() {
 
     if (Serial.available()) {
 
+        String inByte = Serial.readStringUntil('Q');
         // Fetch incoming byte as state
-        char state = Serial.read();
+        char state = inByte.toInt();
         // Transmit state of motor
         Serial.print(state);
 
@@ -159,3 +160,4 @@ void loop() {
     }
     delay(100); // delay for 1/10 of a second
 }
+
