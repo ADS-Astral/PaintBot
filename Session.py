@@ -78,23 +78,32 @@ class Feed:
 
 if __name__ == '__main__':
 
+    FEEDS_LISTED = 100
+
+    timeLapse = 0
+
     session = Session()
 
-    for i in range(0, 1000):
+    for i in range(0, 10000):
         session.Append(Feed())
 
     layout = [
         [sg.Text(key="file-label"), sg.FileBrowse()],
-        [sg.InputText(key="time-search", default_text="0")],
+        [sg.Slider(key="time-slider", range=(0, 120), orientation="h", tick_interval=30)],
+        [sg.InputText(key="time-input", default_text="0")],
         [sg.Listbox(key="feed-list", values=[], size=(30, 6))],
         [sg.Submit(), sg.Cancel()],
     ]
 
     window = sg.Window(
-        'Session Viewer - Paint Bot',
+        "Session Viewer - Paint Bot",
         layout,
         no_titlebar=False,
         location=(0, 0))
+
+    timeInput = window["time-input"]
+    timeSlider = window["time-slider"]
+    timeSliderValue = 0
 
     fileLabel = window["file-label"]
     fileLabel.Update(value="File: ")
@@ -106,14 +115,24 @@ if __name__ == '__main__':
         if 0 <= feed.timestamp < 20000:
             feedValues.append("#{} ({})".format(i, feed.timestamp))
         i += 1
-    feedList.Update(values=feedValues)
 
     while True:
-
-        event, values = window.Read(timeout=50)
-        if event in ('Quit', None):
+        event, values = window.Read(timeout=1)
+        if event in ("Quit", None):
             break
 
-        window.Refresh()
+        if timeLapse is not values["time-slider"]:
+            timeLapse = values["time-slider"]
+            timeSlider.Update(value=timeLapse)
+            timeInput.Update(value=timeLapse)
+        elif timeLapse is not timeInput.Get():
+            timeLapse = timeInput.Get()
+            timeSlider.Update(value=timeLapse)
+            timeInput.Update(value=timeLapse)
+        if feedValues is not None:
+            feedList.Update(values=feedValues)
+            feedValues = None
+
+        # window.Refresh()
 
     window.close()
