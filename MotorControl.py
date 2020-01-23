@@ -13,10 +13,6 @@ class MotorControl:
         self.serial = serial
         pass
 
-    def __del__(self):
-        self.serial.close()
-        pass
-
     def write(self, signal):
         byte = str(signal).encode('utf-8')
         self.serial.write(byte)
