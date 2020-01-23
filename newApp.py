@@ -8,6 +8,7 @@ import numpy as np
 from MotorControl import MotorControl
 import threading
 from serial import Serial
+#from skimage.transfrom import resize
 
 
 # Configuring Serial Port
@@ -20,16 +21,16 @@ from serial import Serial
 
 # Configure depth and color streams
 pipeline = rs.pipeline()
-pipeline2 = rs.pipeline() # 
+
 config = rs.config()
 config2 = rs.config()
-config.enable_stream(rs.stream.depth, 424, 240, rs.format.z16, 6)
-config.enable_stream(rs.stream.color, 424, 240, rs.format.bgr8, 30)
-config2.enable_stream(rs.stream.pose)
-
+config.enable_stream(rs.stream.depth, 424, 240, rs.format.z16, 60)
+config.enable_stream(rs.stream.color, 424, 240, rs.format.bgr8, 60)
+#config2.enable_stream(rs.stream.pose)
+#profile2 = pipeline.start(config2)
 # Start streaming
 profile = pipeline.start(config)
-pipeline2.start(config2)
+
 
 # Getting the depth sensor's depth scale 
 depth_sensor = profile.get_device().first_depth_sensor()
@@ -101,7 +102,7 @@ def main():
         ],
         [
             sg.Image(filename='', key='-image-'),
-            # sg.Image(filename='', key='-image2-'),
+            sg.Image(filename='', key='-image2-'),
         ],
         [
             sg.Text('Distance:', size=(8, 1),font='Helvetica 14'),
@@ -140,7 +141,7 @@ def main():
 
     # locate the elements we'll be updating. Does the search only 1 time
     image_elem = window['-image-']
-    # image_elem2 = window['-image2-']
+    image_elem2 = window['-image2-']
 
     
 #-----Depth clipping feature----------
@@ -167,7 +168,7 @@ def main():
         #--REALSENSE-----------
         # Wait for a coherent pair of frames: depth and color
         frames = pipeline.wait_for_frames()
-        poseframes = pipeline2.wait_for_frames()
+        #poseframes = pipeline2.wait_for_frames()
 
         # Align the depth frame to color frame - Clipping feature
         depth_frame = align.process(frames)
@@ -184,28 +185,28 @@ def main():
         color_image = np.asanyarray(color_frame.get_data())
 
         # get gyro and accel data
-        pose = poseframes.get_pose_frame()
-        if pose:
+        #pose = poseframes.get_pose_frame()
+        #if pose:
             # Print some of the pose data to the terminal
-            data = pose.get_pose_data()
+            #data = pose.get_pose_data()
 
             # position_list = str(data.translation).split(',') # position list [x,y,z]
             # velocity_list = str(data.velocity).split(',') # velocity list [x,y,z]
             # acceleration_list = str(data.acceleration).split(',') # acceleration_list [x,y,z]
            
-            window['robo_position_x'].update("Position in meters relative to start: x: {}".format(round(float(data.translation.x), 3)))
-            window['robo_position_y'].update("y: {}".format(round(float(data.translation.y), 3)))
-            window['robo_position_z'].update("z: {}".format(round(float(data.translation.z), 3)))
-            window['robo_velocity_x'].update("Velocity in meters/sec: x: {}".format(round(float(data.velocity.x), 3)))
-            window['robo_velocity_y'].update("y: {}".format(round(float(data.velocity.y), 3)))
-            window['robo_velocity_z'].update("z: {}".format(round(float(data.velocity.z), 3)))
-            window['robo_acceleration_x'].update("Acceleration in meters/sec^2: x: {}".format(round(float(data.acceleration.x), 3)))
-            window['robo_acceleration_y'].update("y: {}".format(round(float(data.acceleration.y), 3)))
-            window['robo_acceleration_z'].update("z: {}".format(round(float(data.acceleration.z), 3)))
-            print("Frame #{}".format(pose.frame_number))
-            print("Position: {}".format(data.translation))
-            print("Velocity: {}".format(data.velocity))
-            print("Acceleration: {}\n".format(data.acceleration))
+            #window['robo_position_x'].update("Position in meters relative to start: x: {}".format(round(float(data.translation.x), 3)))
+            #window['robo_position_y'].update("y: {}".format(round(float(data.translation.y), 3)))
+            #window['robo_position_z'].update("z: {}".format(round(float(data.translation.z), 3)))
+            #window['robo_velocity_x'].update("Velocity in meters/sec: x: {}".format(round(float(data.velocity.x), 3)))
+            #window['robo_velocity_y'].update("y: {}".format(round(float(data.velocity.y), 3)))
+            #window['robo_velocity_z'].update("z: {}".format(round(float(data.velocity.z), 3)))
+            #window['robo_acceleration_x'].update("Acceleration in meters/sec^2: x: {}".format(round(float(data.acceleration.x), 3)))
+            #window['robo_acceleration_y'].update("y: {}".format(round(float(data.acceleration.y), 3)))
+            #window['robo_acceleration_z'].update("z: {}".format(round(float(data.acceleration.z), 3)))
+            #print("Frame #{}".format(pose.frame_number))
+            #print("Position: {}".format(data.translation))
+            #print("Velocity: {}".format(data.velocity))
+            #print("Acceleration: {}\n".format(data.acceleration))
         
 
         #Adds text to both video feeds
@@ -254,17 +255,23 @@ def main():
         
 
         # Collecting indervidual frames converting to an image and updating GUI
+        print(images.__class__)
         frame = cv2.imencode('.png', images)
-
+        #frame1 = resize(color_image, (212, 120))
+        print(frame.__class__)
+        print(frame[0].__class__)
+        print(frame[1].__class__)
+        #print(frame1.__class__)
+        # np.resize(color_image, ())
         scale_percent = 20
-        # width = int(frame1.shape[1] * scale_percent / 100)
-        # height = int(frame1.shape[0] * scale_percent / 100)
-        # dim = (width, height)
-        # small_video = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
+        width = int(color_image.shape[1] * scale_percent / 100)
+        height = int(color_image.shape[0] * scale_percent / 100)
+        dim = (width, height)
+        #small_video = cv2.resize(color_image, dim, interpolation = cv2.INTER_AREA)
         imgbytes = frame[1].tobytes()  # create image type
-        # imagebytes2 = small_video[1].tobytes
+        #imgbytes2 = small_video.tobytes()
         image_elem.update(data=imgbytes) # Update window in widget
-        # image_elem2.update(data=imgbytes2)
+        #image_elem2.update(data=imgbytes2)
 
         # Sending data to arduino and printing the recieved data from arduino
          
